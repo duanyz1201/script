@@ -39,7 +39,17 @@ result=$(curl -s --max-time 5 -X POST 'http://127.0.0.1:1234/rpc/v0' -H "Content
   "id":7878
 }')
 
+if [[ -z "${result}" ]]; then
+    echo "$(date '+%FT%T.%3N') ${sector_id} curl request failed!" | tee -a ${logs_error}
+    return 1
+fi
+
 Expiration_height=$(echo ${result} | jq -r '.result.Expiration')
+if [[ -z "${Expiration_height}" || "${Expiration_height}" == "null" ]]; then
+    echo "$(date '+%FT%T.%3N') ${sector_id} Expiration field missing or invalid!" | tee -a ${logs_error}
+    return 1
+fi
+
 if [[ -n ${Expiration_height} && ${Expiration_height} =~ ^[0-9]+$ ]];then
         if [[ ${Expiration_height} -lt ${end_sector} ]];then
                 echo "${fcfs_path}/sealed/s-${MinerID_conver}-${1}" | tee -a ${logs_info}
