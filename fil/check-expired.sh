@@ -55,10 +55,10 @@ if [[ -n ${Expiration_height} && ${Expiration_height} =~ ^[0-9]+$ ]];then
                 echo "${fcfs_path}/cache/s-${MinerID_conver}-${1}/t_aux" | tee -a ${logs_info}
                 echo "${1}" | tee -a ${logs_expire_sectors_list}
         else
-                echo "MinerID: ${MinerID}, SectorID: ${1} Not expired" | tee -a ${logs_error}
+                echo "$(date '+%FT%T.%3N') MinerID: ${MinerID}, SectorID: ${1} Not expired" | tee -a ${logs_error}
         fi
 else
-        echo "get Expiration failed!" | tee -a ${logs_error}
+        echo "$(date '+%FT%T.%3N') ${1} get Expiration failed!" | tee -a ${logs_error}
         return 1
 fi
 }
