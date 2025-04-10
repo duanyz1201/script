@@ -7,18 +7,18 @@ end_sector="4822540"
 
 fcfs_path="/fcfs_srgj_f01159754"
 
-logs_info="${MinerID}-expired-info.log"
-logs_error="${MinerID}-expired-error.log"
-logs_expired_sectors_list="${MinerID}-expired-sectors-list.log"
+logs_info="${MinerID}-expire-info.log"
+logs_error="${MinerID}-expire-error.log"
+logs_expire_sectors_list="${MinerID}-expire-sectors-list.log"
 
 if [[ -z ${1} || ! -f ${1} ]];then
         echo "Usage: $0 <sector_list_file>"
         exit 1
 fi
 
-> "${logs_info}"
-> "${logs_error}"
-> "${logs_expired_sectors_list}"
+> ${logs_info}
+> ${logs_error}
+> ${logs_expire_sectors_list}
 
 get_Expiration() {
 result=$(curl -s --max-time 5 -X POST 'http://127.0.0.1:1234/rpc/v0' -H "Content-Type: application/json" --data '{
@@ -29,7 +29,10 @@ result=$(curl -s --max-time 5 -X POST 'http://127.0.0.1:1234/rpc/v0' -H "Content
      '${1}',
      [
        {
-         "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"  # 执行lotus chain head、获取最新的tipset
+         "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"  # 执行lotus chain head、获取最新的
+       },
+       {
+         "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"
        }
      ]
   ],
@@ -50,7 +53,7 @@ if [[ -n ${Expiration_height} && ${Expiration_height} =~ ^[0-9]+$ ]];then
                 echo "${fcfs_path}/cache/s-${MinerID_conver}-${1}/sc-02-data-tree-r-last-6.dat" | tee -a ${logs_info}
                 echo "${fcfs_path}/cache/s-${MinerID_conver}-${1}/sc-02-data-tree-r-last-7.dat" | tee -a ${logs_info}
                 echo "${fcfs_path}/cache/s-${MinerID_conver}-${1}/t_aux" | tee -a ${logs_info}
-                echo "${1}" | tee -a ${logs_expired_sectors_list}
+                echo "${1}" | tee -a ${logs_expire_sectors_list}
         else
                 echo "MinerID: ${MinerID}, SectorID: ${1} Not expired" | tee -a ${logs_error}
         fi
