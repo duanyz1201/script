@@ -29,7 +29,7 @@ result=$(curl -s --max-time 5 -X POST 'http://127.0.0.1:1234/rpc/v0' -H "Content
      '${1}',
      [
        {
-         "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"
+         "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"  # 执行lotus chain head、获取最新的
        },
        {
          "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"
@@ -40,7 +40,7 @@ result=$(curl -s --max-time 5 -X POST 'http://127.0.0.1:1234/rpc/v0' -H "Content
 }')
 
 Expiration_height=$(echo ${result} | jq -r '.result.Expiration')
-if [[ -n ${Expiration_height} || ${Expiration_height} =~ ^[0-9]+$ ]];then
+if [[ -n ${Expiration_height} && ${Expiration_height} =~ ^[0-9]+$ ]];then
         if [[ ${Expiration_height} -lt ${end_sector} ]];then
                 echo "${fcfs_path}/sealed/s-${MinerID_conver}-${1}" | tee -a ${logs_info}
                 echo "${fcfs_path}/cache/s-${MinerID_conver}-${1}/p_aux" | tee -a ${logs_info}
