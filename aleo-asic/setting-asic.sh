@@ -6,15 +6,15 @@ ACCOUNT="chao576524532"
 log_file="/root/logs/setting-asic.log"
 
 log_info() {
-        echo "$(date '+%Y-%m-%d %H:%M:%S') [INFO] $1" >> "${log_file}"
+        echo "$(date '+%FT%T.%3N') [INFO] $1" >> "${log_file}"
 }
 
 log_error() {
-        echo "$(date '+%Y-%m-%d %H:%M:%S') [ERROR] $1" >> "${log_file}"
+        echo "$(date '+%FT%T.%3N') [ERROR] $1" >> "${log_file}"
 }
 
 get_token() {
-    TOKEN=$(curl -s --max-time 3 'http://'${IP}'/user/login?username=admin&password=123456789'|jq -r '."JWT Token"')
+    TOKEN=$(curl -s --max-time 2 --retry 2 'http://'${IP}'/user/login?username=admin&password=123456789'|jq -r '."JWT Token"')
     if [[ -z ${TOKEN} ]];then
         log_error "${IP} get token failed!"
         return 1
@@ -29,10 +29,9 @@ get_token() {
 get_mac_addr() {
     get_token
     if [[ $? != 0 ]];then
-        log_error "${IP} get token failed!"
         return 1
     fi
-    mac_addr=$(curl -s --max-time 3 'http://'${IP}'/mcb/setting' \
+    mac_addr=$(curl -s --max-time 2 --retry 2 'http://'${IP}'/mcb/setting' \
   -H 'Authorization: Bearer '${TOKEN}'' | jq -r '.name')
 
     if [[ -z ${mac_addr} ]];then
@@ -42,7 +41,7 @@ get_mac_addr() {
 }
 
 delpools() {
-    curl -s --max-time 3 'http://'${IP}'/mcb/delpools' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
+    curl -s --max-time 2 --retry 2 'http://'${IP}'/mcb/delpools' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
     if [[ ! $? == 0 ]];then
         log_error "${IP} Failed to delete mining pool"
         return 1
@@ -63,7 +62,7 @@ add_newpool() {
     fi
 
     mac=$(echo ${mac_addr} | tr -d ':')
-    newpool_info=$(curl -s --max-time 3 'http://'${IP}'/mcb/newpool' \
+    newpool_info=$(curl -s --max-time 2 --retry 2 'http://'${IP}'/mcb/newpool' \
   -X 'PUT' \
   -H 'Authorization: Bearer '${TOKEN}'' \
   -H 'Content-Type: application/json' \
@@ -80,10 +79,9 @@ add_newpool() {
 start_reboot() {
     get_token
     if [[ $? != 0 ]];then
-        log_error "${IP} get token failed!"
         return 1
     fi
-    curl -s --max-time 3 'http://'${IP}'/mcb/restart' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
+    curl -s --max-time 2 --retry 2 'http://'${IP}'/mcb/restart' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
     if [[ $? == 0 ]];then
         log_info "${IP} reboot success"
     else
@@ -109,6 +107,9 @@ display_mac() {
     do
         IP="${ip}"
         get_mac_addr
+        if [[ $? != 0 ]];then
+            continue
+        fi
         echo "$(echo ${ip} | tr '.' '_') $(echo ${mac_addr} | tr -d ':')"
     done
 }
