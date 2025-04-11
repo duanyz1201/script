@@ -3,7 +3,7 @@
 MinerID="f01159754"
 MinerID_conver="${MinerID/f/t}"
 start_sector="0"
-end_sector="4822540"
+end_sector="4867666"
 
 fcfs_path="/fcfs_srgj_f01159754"
 
@@ -21,16 +21,23 @@ fi
 > ${logs_expire_sectors_list}
 
 get_Expiration() {
+sector_id=${1}
+if [[ -z ${sector_id} ]];then
+        echo "$(date '+%FT%T.%3N') ${sector_id} is empty!" | tee -a ${logs_error}
+        return 1
+fi
+if [[ ! ${sector_id} =~ ^[0-9]+$ ]];then
+        echo "$(date '+%FT%T.%3N') ${sector_id} is not a number!" | tee -a ${logs_error}
+        return 1
+fi
+
 result=$(curl -s --max-time 5 -X POST 'http://127.0.0.1:1234/rpc/v0' -H "Content-Type: application/json" --data '{
   "jsonrpc":"2.0",
   "method":"Filecoin.StateSectorGetInfo",
   "params":[
      "'${MinerID}'",
-     '${1}',
+     '${sector_id}',
      [
-       {
-         "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"  # 执行lotus chain head、获取最新的
-       },
        {
          "/": "bafy2bzacedynnzr2nkysmifuy3cssc2k3l6t2ni4as2yv6gllzuaqwevkwlb6"
        }
