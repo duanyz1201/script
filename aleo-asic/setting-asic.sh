@@ -14,38 +14,56 @@ log_error() {
 }
 
 get_token() {
-    TOKEN=$(curl -s 'http://'${IP}'/user/login?username=admin&password=123456789'|jq -r '."JWT Token"')
+    TOKEN=$(curl -s --max-time 3 'http://'${IP}'/user/login?username=admin&password=123456789'|jq -r '."JWT Token"')
     if [[ -z ${TOKEN} ]];then
         log_error "${IP} get token failed!"
-        exit 1
+        return 1
     fi
+    if [[ ${TOKEN} == "null" ]];then
+        log_error "${IP} get token failed!"
+        return 1
+    fi
+    return 0
 }
 
 get_mac_addr() {
     get_token
-    mac_addr=$(curl -s 'http://'${IP}'/mcb/setting' \
+    if [[ $? != 0 ]];then
+        log_error "${IP} get token failed!"
+        return 1
+    fi
+    mac_addr=$(curl -s --max-time 3 'http://'${IP}'/mcb/setting' \
   -H 'Authorization: Bearer '${TOKEN}'' | jq -r '.name')
 
     if [[ -z ${mac_addr} ]];then
         log_error "${IP} get mac addr failed!"
-        exit 1
+        return 1
     fi
 }
 
 delpools() {
-    curl -s 'http://'${IP}'/mcb/delpools' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
+    curl -s --max-time 3 'http://'${IP}'/mcb/delpools' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
     if [[ ! $? == 0 ]];then
         log_error "${IP} Failed to delete mining pool"
-        exit 1
+        return 1
     fi
 }
 
 add_newpool() {
     get_mac_addr
+    if [[ $? != 0 ]];then
+        log_error "${IP} get mac addr failed!"
+        return 1
+    fi
+
     delpools
+    if [[ $? != 0 ]];then
+        log_error "${IP} delete pools failed!"
+        return 1
+    fi
 
     mac=$(echo ${mac_addr} | tr -d ':')
-    newpool_info=$(curl -s 'http://'${IP}'/mcb/newpool' \
+    newpool_info=$(curl -s --max-time 3 'http://'${IP}'/mcb/newpool' \
   -X 'PUT' \
   -H 'Authorization: Bearer '${TOKEN}'' \
   -H 'Content-Type: application/json' \
@@ -55,17 +73,22 @@ add_newpool() {
         echo "url:${POOL},user:${ACCOUNT}.${mac}"
     else
         echo "add newpool failed!"
-        exit 1
+        return 1
     fi
 }
 
 start_reboot() {
     get_token
-    curl -s 'http://'${IP}'/mcb/restart' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
+    if [[ $? != 0 ]];then
+        log_error "${IP} get token failed!"
+        return 1
+    fi
+    curl -s --max-time 3 'http://'${IP}'/mcb/restart' -X 'PUT' -H 'Authorization: Bearer '${TOKEN}''
     if [[ $? == 0 ]];then
         log_info "${IP} reboot success"
     else
         log_error "${IP} reboot failed"
+        return 1
     fi
 }
 
@@ -74,6 +97,10 @@ run() {
     do
         IP="${ip}"
         add_newpool
+        if [[ $? != 0 ]];then
+            log_error "${IP} add newpool failed!"
+            continue
+        fi
     done
 }
 
@@ -91,8 +118,33 @@ reboot() {
     do
         IP="${ip}"
         start_reboot
+        if [[ $? != 0 ]];then
+            log_error "${IP} reboot failed!"
+            continue
+        fi
         sleep 1
     done
 }
 
-$*
+if [[ $# -lt 2 ]];then
+    echo "Usage: $0 <ip_list> <action>"
+    echo "action: run, display_mac, reboot"
+    exit 1
+fi
+
+case $2 in
+    run)
+        run $1
+        ;;
+    display_mac)
+        display_mac $1
+        ;;
+    reboot)
+        reboot $1
+        ;;
+    *)
+        echo "Invalid action: $2"
+        echo "action: run, display_mac, reboot"
+        exit 1
+        ;;
+esac
