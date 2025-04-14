@@ -80,7 +80,7 @@ else
 fi
 }
 
-for i in $(cat ${1} | awk -F ':' '{print $1}')
+for i in $(cat ${1} | awk -F ',' '{print $1}')
 do
         get_Expiration ${i}
 done
