@@ -63,7 +63,7 @@ push_txt="$(date '+%F %T')\n
 
 echo "${push_txt}" 
 
-# curl -s 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f358e0b3-0843-45c6-b513-4ec32d958d89' \
+curl -s 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f358e0b3-0843-45c6-b513-4ec32d958d89' \
    -H 'Content-Type: application/json' \
    -d '
    {
