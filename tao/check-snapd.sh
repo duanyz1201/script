@@ -44,6 +44,7 @@ if systemctl is-enabled --quiet snapd; then
 else
     systemctl unmask snapd
     systemctl enable snapd
+    systemctl start snapd
     echo "snapd service enabled."
 fi
 

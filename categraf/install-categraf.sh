@@ -4,6 +4,9 @@ if [[ -z ${1} ]];then
     ip=$(ip addr|awk -F '[ /]+' '/inet/{print $3}'|grep -oP '^172.(20|28|29)\S+|^10.(17)\S+|^172.16\S+|^192.168.(30)\S+'|head -1)
 elif [[ ${1} = "ecs" ]];then
     ip=$(curl -s ipinfo.io | jq -r '.ip')
+elif [[ ${1} = "custom" ]];then
+    ip=$(ip addr|awk -F '[ /]+' '/inet/{print $3}'|grep -oP '^192.168.(0)\S+'|head -1)
+    ip=$(curl -s 'http://qp.duanyz.net:8030/ipip' | grep -w "$ip" | awk '{print $2}')
 fi
 
 n9e_server="172.28.56.119,116.182.20.16"
@@ -33,7 +36,7 @@ elif [[ ${pre_ip} =~ "172.16" || ${pre_ip} =~ "10.17" ]];then
     region="LZ-GZ"
     n9e_server="116.182.20.16"
     dl_server="qp.duanyz.net:8030"
-elif [[ ${1} = "ecs" ]];then
+elif [[ ${1} = "ecs" || ${1} = "custom" ]];then
     region="${2}"
     n9e_server="116.182.20.16"
     dl_server="qp.duanyz.net:8030"
