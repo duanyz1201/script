@@ -5,8 +5,18 @@ if [[ -z ${1} ]];then
 elif [[ ${1} = "ecs" ]];then
     ip=$(curl -s ipinfo.io | jq -r '.ip')
 elif [[ ${1} = "custom" ]];then
-    ip=$(ip addr|awk -F '[ /]+' '/inet/{print $3}'|grep -oP '^192.168.(0)\S+'|head -1)
-    ip=$(curl -s 'http://qp.duanyz.net:8030/ipip' | grep -w "$ip" | awk '{print $2}')
+    local_ip=$(ip addr|awk -F '[ /]+' '/inet/{print $3}'|grep -oP '^192.168.(0)\S+'|head -1)
+    if [[ -z ${local_ip} ]];then
+        echo "Unknown IP!"
+        exit 1
+    fi
+    
+    iplist=$(curl -s 'http://qp.duanyz.net:8030/ipip')
+    ip=$(echo "$iplist" | grep -w "$local_ip" | awk '{print $2}')
+    if [[ -z ${ip} ]];then
+        echo "Unknown IP!"
+        exit 1
+    fi
 fi
 
 n9e_server="172.28.56.119,116.182.20.16"
@@ -47,7 +57,7 @@ if [[ -e /etc/categraf ]];then
     exit 0
 fi
 
-curl -k -L --max-time 60 http://${dl_server}/${categraf_program} -o /tmp/${categraf_program}
+curl -s -k -L --max-time 60 http://${dl_server}/${categraf_program} -o /tmp/${categraf_program}
 
 if [[ $? != 0 ]];then
     echo "download categraf failed!"
