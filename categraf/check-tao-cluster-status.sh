@@ -12,7 +12,7 @@ log() {
     shift
     local message=$@
     local timestamp=$(date +"%FT%T.%3N%")
-    echo "$timestamp [$level] - $message"
+    echo "$timestamp [$level] - $message" >> /etc/categraf/scripts/logs
 }
 
 check_dependency() {
@@ -35,8 +35,13 @@ check_dependency jq
 chutes_miner_path="/usr/local/bin/chutes-miner"
 
 declare -A hotkey_paths=(
-    [sg-5]="/data/sg-5-hotkey"
-    [zw-20]="/data/zw-20-hotkey"
+    [sg-5]="/etc/categraf/scripts/tao-key/sg-5-hotkey"
+    [zw-20]="/etc/categraf/scripts/tao-key/zw-20-hotkey"
+    [ws-01]="/etc/categraf/scripts/tao-key/ws-01-hotkey"
+    [ws-02]="/etc/categraf/scripts/tao-key/ws-02-hotkey"
+    [sc-07]="/etc/categraf/scripts/tao-key/sc-07-hotkey"
+    [sc-11]="/etc/categraf/scripts/tao-key/sc-11-hotkey"
+    [4090-03-test]="/etc/categraf/scripts/tao-key/4090-03-test-hotkey"
 )
 
 for label in "${!hotkey_paths[@]}"

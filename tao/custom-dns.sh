@@ -11,12 +11,12 @@ if [[ $ID != "ubuntu" || $VERSION_ID != "22.04" ]]; then
     exit 1
 fi
 
-rm /etc/resolv.conf
+# rm /etc/resolv.conf
 
 cat << EOF > /etc/resolv.conf
 nameserver 8.8.8.8
 nameserver 1.1.1.1
 EOF
 
-systemctl disable systemd-resolved
-systemctl stop systemd-resolved
+# systemctl disable systemd-resolved
+# systemctl stop systemd-resolved
