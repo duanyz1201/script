@@ -1,0 +1,26 @@
+#!/usr/bin/expect
+
+set timeout 60
+set wallet_name "sg"
+set netuid "64"
+set hotkey $env(hotkey)
+set password "111111"
+
+spawn btcli stake remove --wallet-name $wallet_name --netuid $netuid --hotkey-ss58-address $hotkey
+
+expect {
+    "Unstake all*" {
+        send "y\r"
+    }
+}
+
+expect {
+    "Would you like to continue?" {
+        send "y\r"
+    }
+}
+
+expect "Enter your password:"
+send "$password\r"
+
+exit 0

@@ -12,7 +12,7 @@ log() {
     shift
     local message=$@
     local timestamp=$(date +"%FT%T.%3N%")
-    echo "$timestamp [$level] - $message" >> /etc/categraf/scripts/logs
+    echo "$timestamp [$level] - $message" >> /etc/categraf/scripts/logs/check-tao-cluster-status.log
 }
 
 check_dependency() {
@@ -41,26 +41,38 @@ declare -A hotkey_paths=(
     [ws-02]="/etc/categraf/scripts/tao-key/ws-02-hotkey"
     [sc-07]="/etc/categraf/scripts/tao-key/sc-07-hotkey"
     [sc-11]="/etc/categraf/scripts/tao-key/sc-11-hotkey"
-    [4090-03-test]="/etc/categraf/scripts/tao-key/4090-03-test-hotkey"
+)
+
+declare -A miner_api=(
+    [sg-5]="http://98.98.124.203:32000"
+    [zw-20]="http://103.129.53.118:32000"
+    [ws-01]="http://163.171.253.25:32000"
+    [ws-02]="http://163.171.193.6:32000"
+    [sc-07]="http://203.175.15.189:32000"
+    [sc-11]="http://203.175.15.190:32000"
 )
 
 for label in "${!hotkey_paths[@]}"
 do
     for path in "${hotkey_paths[$label]}"
     do
-        remote_inventory_response=$($chutes_miner_path remote-inventory --hotkey $path --raw-json)
+        api_url=${miner_api[$label]}
+        local_inventory_response=$($chutes_miner_path local-inventory --hotkey $path --miner-api $api_url --raw-json)
         if [[ $? -ne 0 ]]; then
-            log ERROR "Failed to get remote inventory for $label"
+            log ERROR "Failed to get local inventory for $label"
             exit 1
         fi
-        if [[ -z $remote_inventory_response ]]; then
-            log ERROR "Remote inventory response for $label is empty"
+        if [[ -z $local_inventory_response ]]; then
+            log ERROR "local inventory response for $label is empty"
             exit 1
         fi
-        node_num=$(echo "${remote_inventory_response}" | jq -r '[.[]|select(.device_index == 0)]|length')
-        active_num=$(echo "${remote_inventory_response}" | jq -r '[.[]|select(.inst_verified_at != null)]|length')
-        inactive_num=$(echo "${remote_inventory_response}" | jq -r '[.[]|select(.inst_verified_at == null)]|length')
+        node_num=$(echo "${local_inventory_response}" | jq -r '[.[]]|length')
+        gpu_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.gpus[]]|length')
+        active_gpu_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[].gpus|length]|add')
+        inactive_gpu_num=$(( gpu_num - active_gpu_num ))
+        active_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[]|select(.active == true)|.gpus|length]|add')
+        inactive_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[]|select(.active == false)|.gpus|length]|add // 0')
         hotkey_address=$(cat $path | jq -r '.ss58Address')
-        echo "tao_cluster_status,hotkey=${hotkey_address},cluster=${label} node_num=${node_num},active=${active_num},inactive=${inactive_num}"
+        echo "tao_cluster_status,hotkey=${hotkey_address},cluster=${label} node_num=${node_num},gpu_num=${gpu_num},inactive_gpu_num=${inactive_gpu_num},active=${active_num},inactive=${inactive_num}"
     done
 done
