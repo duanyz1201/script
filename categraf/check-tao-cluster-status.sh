@@ -60,11 +60,11 @@ do
         local_inventory_response=$($chutes_miner_path local-inventory --hotkey $path --miner-api $api_url --raw-json)
         if [[ $? -ne 0 ]]; then
             log ERROR "Failed to get local inventory for $label"
-            exit 1
+            continue
         fi
         if [[ -z $local_inventory_response ]]; then
             log ERROR "local inventory response for $label is empty"
-            exit 1
+            continue
         fi
         node_num=$(echo "${local_inventory_response}" | jq -r '[.[]]|length')
         gpu_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.gpus[]]|length')
