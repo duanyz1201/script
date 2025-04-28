@@ -6,6 +6,8 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+# 如果snapd服务不正常、可以尝试snap install hello-world
+
 # 检查 snapd 是否已安装
 if dpkg -l | grep -q snapd; then
     echo "snapd is already installed."

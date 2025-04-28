@@ -11,7 +11,7 @@ log() {
     local level=$1
     shift
     local message=$@
-    local timestamp=$(date +"%FT%T.%3N%")
+    local timestamp=$(date +"%FT%T.%3N")
     echo "$timestamp [$level] - $message" >> /etc/categraf/scripts/logs/check-tao-cluster-status.log
 }
 
