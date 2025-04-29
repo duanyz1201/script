@@ -68,9 +68,9 @@ do
         fi
         node_num=$(echo "${local_inventory_response}" | jq -r '[.[]]|length')
         gpu_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.gpus[]]|length')
-        active_gpu_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[].gpus|length]|add')
+        active_gpu_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[].gpus|length]|add // 0')
         inactive_gpu_num=$(( gpu_num - active_gpu_num ))
-        active_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[]|select(.active == true)|.gpus|length]|add')
+        active_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[]|select(.active == true)|.gpus|length]|add // 0')
         inactive_num=$(echo "${local_inventory_response}" | jq -r '[.[]|.deployments[]|select(.active == false)|.gpus|length]|add // 0')
         hotkey_address=$(cat $path | jq -r '.ss58Address')
         echo "tao_cluster_status,hotkey=${hotkey_address},cluster=${label} node_num=${node_num},gpu_num=${gpu_num},inactive_gpu_num=${inactive_gpu_num},active=${active_num},inactive=${inactive_num}"
