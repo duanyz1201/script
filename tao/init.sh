@@ -5,7 +5,9 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-echo -e "root soft nofile 1048576\nroot hard nofile 1048576" >> /etc/security/limits.conf
+if ! grep -q "root soft nofile 1048576" /etc/security/limits.conf;then
+    echo -e "root soft nofile 1048576\nroot hard nofile 1048576" >> /etc/security/limits.conf
+fi
 
 systemctl disable ufw --now
 
