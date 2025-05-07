@@ -57,8 +57,12 @@ do
     for path in "${hotkey_paths[$label]}"
     do
         api_url=${miner_api[$label]}
-        local_inventory_response=$($chutes_miner_path local-inventory --hotkey $path --miner-api $api_url --raw-json)
-        if [[ $? -ne 0 ]]; then
+        local_inventory_response=$(timeout 10s $chutes_miner_path local-inventory --hotkey $path --miner-api $api_url --raw-json)
+        exit_code=$?
+        if [[ $exit_code -eq 124 ]]; then
+            log ERROR "Timeout while getting local inventory for $label"
+            continue
+        elif [[ $exit_code -ne 0 ]]; then
             log ERROR "Failed to get local inventory for $label"
             continue
         fi

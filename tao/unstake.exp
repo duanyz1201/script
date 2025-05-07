@@ -1,10 +1,10 @@
 #!/usr/bin/expect
 
 set timeout 60
-set wallet_name "sg"
+set wallet_name $env(wallet_name)
 set netuid "64"
 set hotkey $env(hotkey)
-set password "111111"
+set password $env(password)
 
 spawn btcli stake remove --wallet-name $wallet_name --netuid $netuid --hotkey-ss58-address $hotkey
 
