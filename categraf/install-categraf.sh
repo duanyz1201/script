@@ -5,14 +5,7 @@ if [[ -z ${1} ]];then
 elif [[ ${1} = "ecs" ]];then
     ip=$(curl -s ipinfo.io | jq -r '.ip')
 elif [[ ${1} = "custom" ]];then
-    local_ip=$(ip addr|awk -F '[ /]+' '/inet/{print $3}'|grep -oP '^192.168.(0)\S+'|head -1)
-    if [[ -z ${local_ip} ]];then
-        echo "Unknown IP!"
-        exit 1
-    fi
-    
-    iplist=$(curl -s 'http://qp.duanyz.net:8030/ipip')
-    ip=$(echo "$iplist" | grep -w "$local_ip" | awk '{print $2}')
+    ip=$(hostname)
     if [[ -z ${ip} ]];then
         echo "Unknown IP!"
         exit 1
@@ -20,8 +13,8 @@ elif [[ ${1} = "custom" ]];then
 fi
 
 n9e_server="172.28.56.119,116.182.20.16"
-categraf_program="categraf-v0.4.3-0314.tar.gz"
-file_md5sum="5d1b7c0cf41bb578cd0bb2fb0657dba2"
+categraf_program="categraf-v0.4.3-nvidia.tar.gz"
+file_md5sum="8630dd23e47d255e3d84a5ad89f551eb"
 
 if [[ -z ${ip} ]];then
     echo "Unknown IP!"
@@ -37,19 +30,19 @@ if [[ ${pre_ip} =~ "172.28" ]];then
 elif [[ ${pre_ip} =~ "192.168.30" ]];then
     region="QP-158"
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8030"
+    dl_server="qp.duanyz.net:8088/dl"
 elif [[ ${pre_ip} =~ "172.20" ]];then
     region="HA"
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8030"
+    dl_server="qp.duanyz.net:8088/dl"
 elif [[ ${pre_ip} =~ "172.16" || ${pre_ip} =~ "10.17" ]];then
     region="LZ-GZ"
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8030"
+    dl_server="qp.duanyz.net:8088/dl"
 elif [[ ${1} = "ecs" || ${1} = "custom" ]];then
     region="${2}"
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8030"
+    dl_server="qp.duanyz.net:8088/dl"
 fi
 
 if [[ -e /etc/categraf ]];then
@@ -57,7 +50,7 @@ if [[ -e /etc/categraf ]];then
     exit 0
 fi
 
-curl -s -k -L --max-time 60 http://${dl_server}/${categraf_program} -o /tmp/${categraf_program}
+curl -s -k -L --max-time 300 http://${dl_server}/${categraf_program} -o /tmp/${categraf_program}
 
 if [[ $? != 0 ]];then
     echo "download categraf failed!"

@@ -4,7 +4,7 @@ apt-get update
 apt-get install ca-certificates curl gnupg -y
 
 install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
 
 echo \

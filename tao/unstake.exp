@@ -2,7 +2,7 @@
 
 set timeout 60
 set wallet_name $env(wallet_name)
-set netuid "64"
+set netuid $env(netuid)
 set hotkey $env(hotkey)
 set password $env(password)
 

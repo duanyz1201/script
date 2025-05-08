@@ -1,13 +1,14 @@
 #!/bin/bash
 
 wallets=(
-    "5DPB6bPAqBC7JMBMzdwyA4k4WsreoGpHkixZh1QZS7R9pFyr sg-5 123456"
+    "51 sg-5 5DPB6bPAqBC7JMBMzdwyA4k4WsreoGpHkixZh1QZS7R9pFyr 123456"
 )
 
 for wallet in "${wallets[@]}"; do
-    hotkey=$(echo "$wallet" | awk '{print $1}')
+    netuid=$(echo "$wallet" | awk '{print $1}')
     wallet_name=$(echo "$wallet" | awk '{print $2}')
-    password=$(echo "$wallet" | awk '{print $3}')
+    hotkey=$(echo "$wallet" | awk '{print $3}')
+    password=$(echo "$wallet" | awk '{print $4}')
 
     export hotkey
     export wallet_name
