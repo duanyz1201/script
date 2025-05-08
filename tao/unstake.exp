@@ -1,10 +1,12 @@
 #!/usr/bin/expect
 
-set timeout 60
+set timeout 120
 set wallet_name $env(wallet_name)
 set netuid $env(netuid)
 set hotkey $env(hotkey)
 set password $env(password)
+
+puts "DEBUG: Password is $password"
 
 spawn btcli stake remove --wallet-name $wallet_name --netuid $netuid --hotkey-ss58-address $hotkey
 
@@ -20,7 +22,23 @@ expect {
     }
 }
 
-expect "Enter your password:"
-send "$password\r"
+expect {
+    "Enter your password:" {
+        send "$password\r"
+    }
+    "Incorrect password" {
+        puts "ERROR: Incorrect password for wallet $wallet_name"
+        exit 1
+    }
+    timeout {
+        puts "ERROR: Timeout while waiting for password prompt"
+        exit 1
+    }
+    eof {
+        puts "ERROR: Command failed or unexpected output"
+        exit 1
+    }
+}
 
+expect eof
 exit 0
