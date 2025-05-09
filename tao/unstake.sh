@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export COLUMNS=200
+
 log() {
     local level=$1
     shift
@@ -13,6 +15,8 @@ unstake_output_dir="/root/duanyz/logs/unstake_output"
 
 wallets=(
     "51 51-baiz02 5DA1em5gQmCdoMsc6QUMwhqLRE5byFULbePPc7isbhuX7Wc8 123456"
+    "64 sg-5 5DPB6bPAqBC7JMBMzdwyA4k4WsreoGpHkixZh1QZS7R9pFyr 123456"
+    "51 chen 5CzR9HVq2yUCvnrgDxM6zp4MvQRTQu7y2m4mQ4C3E6Aoceh3 A123.com"
 )
 
 for wallet in "${wallets[@]}"; do
