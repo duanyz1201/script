@@ -1,11 +1,11 @@
 #!/bin/bash
 
-ELECTRICITY_COST="0.36"
+ELECTRICITY_COST="0"
 MINER_PRICE="19000"
-POOL_FEE="0.01"
-SERVICE_FEE="0.14"
+POOL_FEE="0.04"
+SERVICE_FEE="0"
 
-CNY_USD_response=$(curl -s --max-time 10 --retry 3 'https://www.binance.com/bapi/asset/v1/public/asset-service/product/currency')
+CNY_USD_response=$(curl -s --compressed --max-time 10 --retry 3 'https://www.binance.com/bapi/asset/v1/public/asset-service/product/currency')
 if [[ $? != 0 || -z "${CNY_USD_response}" ]]; then
     echo "Failed to fetch CNY_USD_response rate"
     exit 1
