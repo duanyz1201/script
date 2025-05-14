@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 log_file="/etc/categraf/scripts/logs/get-n9e-server-num.log"
 
@@ -11,7 +11,6 @@ log() {
 }
 
 Token=$(curl -s -X POST 'http://172.28.56.119:16000/api/n9e/auth/login' -d '{"username": "readonly", "password": "readonly"}'|jq -r .dat.access_token)
-
 if [[ $? != 0 || -z $Token ]];then
     log ERROR "get token failed!"
     exit 1
@@ -23,17 +22,28 @@ if [[ $? != 0 || -z $result ]];then
     exit 1
 fi
 
+edgeNodes=$(curl -s --max-time 1 'https://console.oortech.com/info_api/nodes/geo')
+if [[ $? != 0 || -z $edgeNodes ]];then
+    log ERROR "get oort edge nodes failed!"
+    exit 1
+fi
+edgeNode_num=$(echo $edgeNodes | jq -r '[.data.edgeNodes[].num]|add')
+if [[ $? != 0 || -z $edgeNode_num ]];then
+    log ERROR "get oort edge nodes failed!"
+    exit 1
+fi
+
 # total_num=$(echo $result | jq -r '.dat.list|length')
 idc_list=$(echo $result | jq -r '.dat.list[].tags_maps.region'|sort |uniq)
 
 declare -A MachineNum
 for idc in $idc_list;do
-    echo $idc
     num=$(echo $result | jq -r --arg idc "$idc" '[.dat.list[]|select(.tags_maps.region == $idc)]|length')
     MachineNum[$idc]=$num
-    echo $idc $num
 done
 
 for idc in $idc_list;do
     echo "oort_machine,idc=$idc num=${MachineNum[$idc]}"
 done
+
+echo "oort_machine,idc=edgeNodes num=$edgeNode_num"
