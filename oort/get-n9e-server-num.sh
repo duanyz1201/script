@@ -1,0 +1,39 @@
+#!/bin/bash
+
+log_file="/etc/categraf/scripts/logs/get-n9e-server-num.log"
+
+log() {
+    local level=$1
+    shift
+    local message=$@
+    local timestamp=$(date +"%FT%T.%3N")
+    echo "$timestamp $level - $message" >> $log_file
+}
+
+Token=$(curl -s -X POST 'http://172.28.56.119:16000/api/n9e/auth/login' -d '{"username": "readonly", "password": "readonly"}'|jq -r .dat.access_token)
+
+if [[ $? != 0 || -z $Token ]];then
+    log ERROR "get token failed!"
+    exit 1
+fi
+
+result=$(curl -s -H "Authorization: Bearer ${Token}" 'http://172.28.56.119:16000/api/n9e/targets?query=&gids=16&limit=10000&p=1')
+if [[ $? != 0 || -z $result ]];then
+    log ERROR "get n9e server num failed!"
+    exit 1
+fi
+
+# total_num=$(echo $result | jq -r '.dat.list|length')
+idc_list=$(echo $result | jq -r '.dat.list[].tags_maps.region'|sort |uniq)
+
+declare -A MachineNum
+for idc in $idc_list;do
+    echo $idc
+    num=$(echo $result | jq -r --arg idc "$idc" '[.dat.list[]|select(.tags_maps.region == $idc)]|length')
+    MachineNum[$idc]=$num
+    echo $idc $num
+done
+
+for idc in $idc_list;do
+    echo "oort_machine,idc=$idc num=${MachineNum[$idc]}"
+done
