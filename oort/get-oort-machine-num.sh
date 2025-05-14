@@ -22,7 +22,7 @@ if [[ $? != 0 || -z $result ]];then
     exit 1
 fi
 
-edgeNodes=$(curl -s --max-time 1 'https://console.oortech.com/info_api/nodes/geo')
+edgeNodes=$(curl -s --max-time 6 --retry 2 'https://console.oortech.com/info_api/nodes/geo')
 if [[ $? != 0 || -z $edgeNodes ]];then
     log ERROR "get oort edge nodes failed!"
     exit 1
