@@ -21,12 +21,18 @@ if [[ -z ${region} ]]; then
     exit 1
 fi
 
-if [[ ${region} =~ "HA" ]];then
-    region="HA"
-elif [[ ${region} =~ "QP-158" ]];then
-    region="QP-158"
-elif [[ ${region} =~ "LZ-GZ" ]];then
-    region="LZ-GZ"
+if [[ ${region} =~ "ZJDS" ]];then
+    region="ZJDS"
+elif [[ ${region} =~ "DXJF" ]];then
+    region="DXJF"
+elif [[ ${region} =~ "JBJF" ]];then
+    region="JBJF"
+elif [[ ${region} =~ "MHJF" ]];then
+    region="MHJF"
+elif [[ ${region} =~ "NJJF" ]];then
+    region="NJJF"
+elif [[ ${region} =~ "QP158" ]];then
+    region="QP158"
 else
     log ERROR "Unknown region!"
     exit 1
