@@ -30,7 +30,7 @@ interval = 15
 commands = [
     "/etc/categraf/scripts/get-oort-machine-info.sh"
 ]
-timeout = 15
+timeout = 55
 interval_times = 4
 data_format = "influx"
 EOF
@@ -38,7 +38,7 @@ if [[ $? -ne 0 ]];then
     log ERROR "write exec.toml failed!"
     exit 1
 fi
-systemctl restart categraf
+systemctl restart categraf-new
 if [[ $? -ne 0 ]];then
     log ERROR "restart categraf failed!"
     exit 1
