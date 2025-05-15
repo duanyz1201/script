@@ -8,7 +8,7 @@ log() {
     echo "$timestamp $level - $message"
 }
 
-categraf_status=$(systemctl is-active categraf)
+categraf_status=$(systemctl is-active categraf-new)
 if [[ $? -ne 0 || $categraf_status != "active" ]];then
     log ERROR "categraf is not running!"
     exit 1
