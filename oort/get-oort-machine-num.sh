@@ -22,12 +22,25 @@ if [[ $? != 0 || -z $result ]];then
     exit 1
 fi
 
-edgeNodes=$(curl -s --max-time 6 --retry 2 'https://console.oortech.com/info_api/nodes/geo')
-if [[ $? != 0 || -z $edgeNodes ]];then
+oortNodes=$(curl -s --max-time 6 --retry 2 'https://console.oortech.com/info_api/nodes/geo')
+if [[ $? != 0 || -z $oortNodes ]];then
     log ERROR "get oort edge nodes failed!"
     exit 1
 fi
-edgeNode_num=$(echo $edgeNodes | jq -r '[.data.edgeNodes[].num]|add')
+
+superNode_num=$(echo $oortNodes | jq -r '[.data.superNodesCountry[].num]|add')
+if [[ $? != 0 || -z $superNode_num ]];then
+    log ERROR "get oort super nodes failed!"
+    exit 1
+fi
+
+backupNode_num=$(echo $oortNodes | jq -r '[.data.backupNodes[].num]|add')
+if [[ $? != 0 || -z $backupNode_num ]];then
+    log ERROR "get oort backup nodes failed!"
+    exit 1
+fi
+
+edgeNode_num=$(echo $oortNodes | jq -r '[.data.edgeNodes[].num]|add')
 if [[ $? != 0 || -z $edgeNode_num ]];then
     log ERROR "get oort edge nodes failed!"
     exit 1
@@ -47,3 +60,5 @@ for idc in $idc_list;do
 done
 
 echo "oort_machine,idc=edgeNodes num=$edgeNode_num"
+echo "oort_machine,idc=superNodes num=$superNode_num"
+echo "oort_machine,idc=backupNodes num=$backupNode_num"
