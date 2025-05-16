@@ -69,12 +69,12 @@ else
     fi
 fi
 
-manufacturer=$(dmidecode -s system-manufacturer)
+manufacturer=$(dmidecode -s baseboard-manufacturer)
 if [[ $? -ne 0 || -z $manufacturer ]];then
     log ERROR "get manufacturer failed!"
     manufacturer="unknown"
 fi
-product=$(dmidecode -s system-product-name)
+product=$(dmidecode -s baseboard-product-name)
 if [[ $? -ne 0 || -z $product ]];then
     log ERROR "get product failed!"
     product="unknown"
