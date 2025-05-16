@@ -18,6 +18,11 @@ check_dependency() {
         apt-get update >/dev/null 2>&1
         if [[ $1 == "sensors" ]];then
             apt-get install -y lm-sensors >/dev/null 2>&1
+            if [[ $? -ne 0 ]]; then
+                log ERROR "Failed to install lm-sensors."
+                exit 1
+            fi
+            sensors-detect --auto >/dev/null 2>&1
         else
             apt-get install -y $1 >/dev/null 2>&1
         fi
@@ -28,8 +33,6 @@ check_dependency() {
         else
             log INFO "Successfully installed $1."
         fi
-    else
-        log INFO "$1 is already installed."
     fi  
 }
 check_dependency curl
