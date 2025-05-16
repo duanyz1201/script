@@ -57,7 +57,6 @@ sensors_result=$(sensors -j)
 if [[ $? -ne 0 || -z $sensors_result ]];then
     log ERROR "get sensors info failed!"
     cpu_temp="0"
-    acpi_temp="0"
 else
     cpu_temp=$(echo $sensors_result | jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"')
     if [[ $? -ne 0 || -z $cpu_temp ]];then
