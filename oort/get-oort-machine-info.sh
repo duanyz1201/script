@@ -28,6 +28,8 @@ check_dependency() {
         else
             log INFO "Successfully installed $1."
         fi
+    else
+        log INFO "$1 is already installed."
     fi  
 }
 check_dependency curl
@@ -62,11 +64,6 @@ else
         log ERROR "get cpu temp failed!"
         cpu_temp="0"
     fi
-    acpi_temp=$(echo $sensors_result | jq -r '."acpitz-acpi-0"."temp1"."temp1_input"')
-    if [[ $? -ne 0 || -z $acpi_temp ]];then
-        log ERROR "get acpi temp failed!"
-        acpi_temp="0"
-    fi
 fi
 
 manufacturer=$(dmidecode -s baseboard-manufacturer)
@@ -86,4 +83,4 @@ else
     model="${manufacturer}-${product}"
 fi
 
-echo "oort_machine,model=$model,status=$oort_status,version=$oort_version cpu_temp=$cpu_temp,acpi_temp=$acpi_temp"
+echo "oort_machine,model=$model,status=$oort_status,version=$oort_version cpu_temp=$cpu_temp"
