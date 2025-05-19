@@ -43,6 +43,8 @@ if [[ ! -e "/tmp/oort_status.json" ]];then
     log ERROR "oort_status.json not found!"
     oort_status="unknown"
     oort_version="unknown"
+    node_address="unknown"
+    owner_address="unknown"
 else
     oort_status=$(cat /tmp/oort_status.json | jq -r '.status')
     if [[ $? -ne 0 || -z $oort_status ]];then
@@ -53,6 +55,16 @@ else
     if [[ $? -ne 0 || -z $oort_version ]];then
         log ERROR "get oort version failed!"
         oort_version="unknown"
+    fi
+    node_address=$(cat /tmp/oort_status.json | jq -r '.node_address')
+    if [[ $? -ne 0 || -z $node_address ]];then
+        log ERROR "get oort node_address failed!"
+        node_address="unknown"
+    fi
+    owner_address=$(cat /tmp/oort_status.json | jq -r '.owner_address')
+    if [[ $? -ne 0 || -z $owner_address ]];then
+        log ERROR "get oort owner_address failed!"
+        owner_address="unknown"
     fi
 fi
 
@@ -85,4 +97,4 @@ else
     model="${manufacturer}-${product}"
 fi
 
-echo "oort_machine,model=$model,status=$oort_status,version=$oort_version cpu_temp=$cpu_temp"
+echo "oort_machine,model=$model,status=$oort_status,version=$oort_version,node_address=$node_address,owner_address=$owner_address cpu_temp=$cpu_temp"
