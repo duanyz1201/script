@@ -16,6 +16,14 @@ if [[ $? != 0 || -z $Token ]];then
     exit 1
 fi
 
+oort_alert=$(curl -s "http://172.28.56.119:16000/api/n9e/alert-cur-events/list?p=1&limit=30&bgid=16&rule_prods=host" -H "Authorization: Bearer $Token")
+if [[ $? != 0 || -z $oort_alert ]];then
+    log ERROR "get oort alert failed!"
+    exit 1
+else
+    echo $oort_alert | jq -r '.dat.list[]|{target_ident, first_trigger_time}' > /usr/share/nginx/html/oort-alert-offline.log
+fi
+
 result=$(curl -s -H "Authorization: Bearer ${Token}" 'http://172.28.56.119:16000/api/n9e/targets?query=&gids=16&limit=10000&p=1')
 if [[ $? != 0 || -z $result ]];then
     log ERROR "get n9e server num failed!"
