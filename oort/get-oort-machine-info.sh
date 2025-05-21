@@ -97,4 +97,10 @@ else
     model="${manufacturer}-${product}"
 fi
 
-echo "oort_machine,model=$model,status=$oort_status,version=$oort_version,node_address=$node_address,owner_address=$owner_address cpu_temp=$cpu_temp"
+local_ip=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-2)}')
+if [[ $? -ne 0 || -z $local_ip ]];then
+    log ERROR "get local ip failed!"
+    local_ip="unknown"
+fi
+
+echo "oort_machine,model=$model,status=$oort_status,version=$oort_version,node_address=$node_address,owner_address=$owner_address,ip=$local_ip cpu_temp=$cpu_temp"
