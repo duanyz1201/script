@@ -36,6 +36,27 @@ if [[ ! -e "/etc/categraf/conf/config.toml" ]];then
     log ERROR "categraf config file not found!"
     exit 1
 fi
+
+need_restart=0
+
+current_ip=$(grep '^ip' /etc/categraf/conf/config.toml |awk -F '"' '{print $2}')
+if [[ -z ${current_ip} ]];then
+    sed -i '/^\[global.labels\]/a ip = "$ip"' /etc/categraf/conf/config.toml
+    if [[ $? -ne 0 ]];then
+        log ERROR "categraf config file add ip failed!"
+        exit 1
+    fi
+else
+    if [[ ${current_ip} != "\$ip" ]];then
+    sed -i 's/^ip = ".*"/ip = "\$ip"/' /etc/categraf/conf/config.toml
+    if [[ $? -ne 0 ]];then
+        log ERROR "categraf config file update ip failed!"
+        exit 1
+    fi
+    need_restart=1
+    fi
+fi
+
 current_name=$(grep '^hostname' /etc/categraf/conf/config.toml |awk -F '"' '{print $2}')
 if [[ -z ${current_name} ]];then
     log ERROR "categraf config file name not found!"
@@ -64,15 +85,14 @@ if [[ ${current_name} != ${new_name} ]];then
         log ERROR "categraf config file update name failed!"
         exit 1
     fi
-    sed -i '/^\[global.labels\]/a ip = "$ip"' /etc/categraf/conf/config.toml
-    if [[ $? -ne 0 ]];then
-        log ERROR "categraf config file update name failed!"
-        exit 1
-    fi
+    need_restart=1
+fi
+
+if [[ ${need_restart} -eq 1 ]];then
     systemctl restart categraf-new
     if [[ $? -ne 0 ]];then
         log ERROR "categraf restart failed!"
         exit 1
     fi
 fi
-log INFO "categraf config file updated successfully!"
+log INFO "categraf config changed successfully!"
