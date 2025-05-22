@@ -13,7 +13,7 @@ log() {
     echo "$timestamp $level - $message"
 }
 
-local_ip=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-2)}' | tr '.' '-')
+local_ip=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-4)}' | tr -d ':')
 
 if [[ -z ${local_ip} ]];then
     log ERROR "Unknown IP!"

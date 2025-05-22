@@ -40,6 +40,10 @@ elif [[ ${pre_ip} =~ "172.16" || ${pre_ip} =~ "10.17" ]];then
     n9e_server="116.182.20.16"
     dl_server="qp.duanyz.net:8088/dl"
 elif [[ ${1} = "ecs" || ${1} = "custom" ]];then
+    if [[ -z ${2} ]];then
+        echo "Usage: $0 <region>"
+        exit 1
+    fi
     region="${2}"
     n9e_server="116.182.20.16"
     dl_server="qp.duanyz.net:8088/dl"

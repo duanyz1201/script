@@ -17,6 +17,7 @@ check_dependency() {
         log ERROR "Dependency $1 is not installed."
         apt-get update >/dev/null 2>&1
         if [[ $1 == "sensors" ]];then
+            dpkg --configure -a >/dev/null 2>&1
             apt-get install -y lm-sensors >/dev/null 2>&1
             if [[ $? -ne 0 ]]; then
                 log ERROR "Failed to install lm-sensors."
