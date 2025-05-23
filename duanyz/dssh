@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# if [[ $EUID -ne 0 ]]; then
-#     echo "This script must be run as root. Please use sudo."
-#     exit 1
-# fi
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root. Please use sudo."
+    exit 1
+fi
 
 log() {
     local level=$1
@@ -24,18 +24,6 @@ if [[ ! ${ssh_ip} =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]];then
     exit 1
 fi
 
-# Token=$(curl -s -X POST 'http://172.28.56.119:16000/api/n9e/auth/login' -d '{"username": "readonly", "password": "readonly"}'|jq -r .dat.access_token)
-# if [[ $? != 0 || -z $Token ]];then
-#     log ERROR "get token failed!"
-#     exit 1
-# fi
-
-# query_result=$(curl -s "http://172.28.56.119:16000/api/n9e/targets?query=${ssh_ip}&limit=10&p=1" -H "Authorization: Bearer $Token")
-# if [[ $? != 0 || -z $query_result ]];then
-#     log ERROR "get machine list failed!"
-#     exit 1
-# fi
-
 query_result=$(curl -s "http://172.28.56.119:8428/api/v1/query?query=cpu_usage_idle%7Bgroup%3D%22oort%22%2Cip%3D%22${ssh_ip}%22%7D")
 if [[ $? != 0 || -z $query_result ]];then
     log ERROR "get machine list failed!"
@@ -53,7 +41,7 @@ else
             log ERROR "get machine ident failed!"
             exit 1
         fi
-        ssh_port=$(jq -r --arg ident $ident '.proxies[]|select(.name == $ident)|.conf.remotePort' /root/duanyz/project/oort/sh-tcp-list.log)
+        ssh_port=$(jq -r --arg ident $ident '.proxies[]|select(.name == $ident)|.conf.remotePort' /tmp/oort-tcp-list.log)
         if [[ $? != 0 || -z $ssh_port ]];then
             log ERROR "get ssh port failed!"
             exit 1
@@ -83,7 +71,7 @@ else
         fi
         ident=$(echo $query_result | jq -r --argjson idc_num $idc_num '.data.result[$idc_num].metric.ident')
         echo "You selected $idc_num: $ident"
-        ssh_port=$(jq -r --arg ident $ident '.proxies[]|select(.name == $ident)|.conf.remotePort' /root/duanyz/project/oort/sh-tcp-list.log)
+        ssh_port=$(jq -r --arg ident $ident '.proxies[]|select(.name == $ident)|.conf.remotePort' /tmp/oort-tcp-list.log)
         if [[ $? != 0 || -z $ssh_port ]];then
             log ERROR "get ssh port failed!"
             exit 1

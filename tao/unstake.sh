@@ -77,7 +77,7 @@ for wallet in "${wallets[@]}"; do
         log ERROR "API request failed for wallet: ${wallet_name}, Hotkey: ${hotkey}"
         continue
     fi
-        
+
     resolt_code=$(echo $resolt | jq -r '.code')
     if [[ $resolt_code -eq 200 ]]; then
         log INFO "Unbond successful for wallet: ${wallet_name}, Hotkey: ${hotkey}, Received: ${Received}"
