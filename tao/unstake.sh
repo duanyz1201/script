@@ -17,13 +17,13 @@ online_url="https://api.umpool.io/api/v1/tao/unbond/save"
 test_url="http://172.28.56.107:12001/api/v1/tao/unbond/save"
 
 declare -A wallet_api_map=(
-    ["zw-20"]=$online_url
-    ["sg-5"]=$online_url
-    ["51-baiz02"]=$online_url
-    ["chen"]=$online_url
-    ["51-baiz03"]=$online_url
-    ["sc-11-a100"]=$test_url
-    ["sc-7-h100"]=$test_url
+    ["zw-20"]="$online_url"
+    ["sg-5"]="$online_url"
+    ["51-baiz02"]="$online_url"
+    ["chen"]="$online_url"
+    ["51-baiz03"]="$online_url"
+    ["sc-11-a100"]="$test_url"
+    ["sc-7-h100"]="$test_url"
 )
 
 wallets=(
@@ -49,6 +49,15 @@ for wallet in "${wallets[@]}"; do
     log INFO "Netuid: ${netuid}, Hotkey: ${hotkey}, Wallet: ${wallet_name}, Password: ${password}"
 
     /usr/bin/expect ${script_path} > ${unstake_output_dir}/output_${wallet_name}.txt 2>&1
+    if [[ $? -ne 0 ]]; then
+        log ERROR "Expect script failed for wallet: ${wallet_name}"
+        continue
+    fi
+
+    if ! grep -q "Finalized" ${unstake_output_dir}/output_${wallet_name}.txt; then
+        log ERROR "Finalized not found in output for wallet: ${wallet_name}"
+        continue
+    fi
 
     Received=$(grep -A 4 "Received (τ)" ${unstake_output_dir}/output_${wallet_name}.txt | tail -n 1 | awk '{print $16}')
     if [[ -z $Received ]]; then

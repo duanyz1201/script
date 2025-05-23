@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+# if [[ $EUID -ne 0 ]]; then
+#     echo "This script must be run as root. Please use sudo."
+#     exit 1
+# fi
+
+log() {
+    local level=$1
+    shift
+    local message=$@
+    local timestamp=$(date +"%FT%T.%3N")
+    echo "$timestamp $level - $message"
+}
+
+ssh_ip=${1}
+if [[ -z ${ssh_ip} ]];then
+    log ERROR "ip is empty!"
+    exit 1
+fi
+
+if [[ ! ${ssh_ip} =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]];then
+    log ERROR "ip format error!"
+    exit 1
+fi
+
+# Token=$(curl -s -X POST 'http://172.28.56.119:16000/api/n9e/auth/login' -d '{"username": "readonly", "password": "readonly"}'|jq -r .dat.access_token)
+# if [[ $? != 0 || -z $Token ]];then
+#     log ERROR "get token failed!"
+#     exit 1
+# fi
+
+# query_result=$(curl -s "http://172.28.56.119:16000/api/n9e/targets?query=${ssh_ip}&limit=10&p=1" -H "Authorization: Bearer $Token")
+# if [[ $? != 0 || -z $query_result ]];then
+#     log ERROR "get machine list failed!"
+#     exit 1
+# fi
+
+query_result=$(curl -s "http://172.28.56.119:8428/api/v1/query?query=cpu_usage_idle%7Bgroup%3D%22oort%22%2Cip%3D%22${ssh_ip}%22%7D")
+if [[ $? != 0 || -z $query_result ]];then
+    log ERROR "get machine list failed!"
+    exit 1
+fi
+
+region_num=$(echo $query_result | jq '.data.result|length')
+if [[ $? != 0 || -z $region_num ]];then
+    log ERROR "get machine region failed!"
+    exit 1
+else
+    if [[ $region_num -eq 1 ]];then
+        ident=$(echo $query_result | jq -r '.data.result[].metric.ident')
+        if [[ $? != 0 || -z $ident ]];then
+            log ERROR "get machine ident failed!"
+            exit 1
+        fi
+        ssh_port=$(jq -r --arg ident $ident '.proxies[]|select(.name == $ident)|.conf.remotePort' /root/duanyz/project/oort/sh-tcp-list.log)
+        if [[ $? != 0 || -z $ssh_port ]];then
+            log ERROR "get ssh port failed!"
+            exit 1
+        fi
+        ssh root@47.116.221.100 -p ${ssh_port}
+    else
+        region_list=$(echo $query_result | jq -r '.data.result[].metric.region')
+        if [[ $? != 0 || -z $region_list ]];then
+            log ERROR "get machine region list failed!"
+            exit 1
+        fi
+        echo -e "$ssh_ip was found in $region_num idc, please select one\n"
+        xx=0
+        for i in ${region_list}; do
+            echo "$xx: $i"
+            ((xx++))
+        done
+        printf "\n"
+        read -p "Please select the idc number: " idc_num
+        if [[ $? != 0 || -z $idc_num ]];then
+            echo "get idc number failed!"
+            exit 1
+        fi
+        if [[ $idc_num -lt 0 || $idc_num -ge $region_num ]];then
+            echo "idc number error!"
+            exit 1
+        fi
+        ident=$(echo $query_result | jq -r --argjson idc_num $idc_num '.data.result[$idc_num].metric.ident')
+        echo "You selected $idc_num: $ident"
+        ssh_port=$(jq -r --arg ident $ident '.proxies[]|select(.name == $ident)|.conf.remotePort' /root/duanyz/project/oort/sh-tcp-list.log)
+        if [[ $? != 0 || -z $ssh_port ]];then
+            log ERROR "get ssh port failed!"
+            exit 1
+        fi
+        ssh root@47.116.221.100 -p ${ssh_port}
+    fi
+fi
