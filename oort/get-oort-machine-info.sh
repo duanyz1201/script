@@ -11,6 +11,17 @@ log() {
     echo "$timestamp $level - $message" >> $log_file
 }
 
+local_ip=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-2)}')
+if [[ $? -ne 0 || -z $local_ip ]];then
+    log ERROR "get local ip failed!"
+    local_ip="unknown"
+fi
+
+if systemd-detect-virt -q; then
+    echo "oort_machine,model=vm,status=vm,version=vm,node_address=vm,owner_address=vm,ip=$local_ip cpu_temp=vm"
+    exit 0
+fi
+
 check_dependency() {
     command -v $1 >/dev/null 2>&1
     if [[ $? -ne 0 ]]; then
@@ -96,12 +107,6 @@ if [[ $manufacturer == "unknown" && $product == "unknown" ]];then
     model="unknown"
 else
     model="${manufacturer}-${product}"
-fi
-
-local_ip=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-2)}')
-if [[ $? -ne 0 || -z $local_ip ]];then
-    log ERROR "get local ip failed!"
-    local_ip="unknown"
 fi
 
 echo "oort_machine,model=$model,status=$oort_status,version=$oort_version,node_address=$node_address,owner_address=$owner_address,ip=$local_ip cpu_temp=$cpu_temp"

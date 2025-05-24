@@ -45,11 +45,6 @@ for ssh_key in "$ssh_key01" "$ssh_key02"; do
     fi
 done
 
-if systemd-detect-virt -q; then
-    log INFO "Running in a virtualized environment, skipping installation."
-    exit 0
-fi
-
 mkdir -p /etc/categraf/scripts/logs
 
 curl -s -k -L --max-time 60 http://qp.duanyz.net:8088/dl/get-oort-machine-info.sh -o /etc/categraf/scripts/get-oort-machine-info.sh
