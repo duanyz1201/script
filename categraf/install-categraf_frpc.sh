@@ -56,16 +56,29 @@ dl_server="qp.duanyz.net:8088/dl"
 
 if [[ ! -d /root/.ssh ]]; then
     mkdir -p /root/.ssh
+    touch /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys
+    chown root:root /root/.ssh/authorized_keys
+    chown root:root /root/.ssh
     chmod 700 /root/.ssh
     log INFO "/root/.ssh directory created."
+else
+    if [[ ! -e /root/.ssh/authorized_keys ]]; then
+        touch /root/.ssh/authorized_keys
+        chmod 600 /root/.ssh/authorized_keys
+        chown root:root /root/.ssh/authorized_keys
+        log INFO "/root/.ssh/authorized_keys file created."
+    fi
 fi
 
-ssh_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7x4hA+rrhRSunWOqycokNon2WZ34igm1sUt3tcw3+F/I/0ctqB1aD8p/cT8WaX1t7NQ61mOf08fnlqv69uH/EHwfHflLqn/IkSoKKmrVs15Iy3rMtH4G3cKOnNWM8nP8opJsXH5KftJYwXrkAX5iAHpROLu9i5pGJYGscTDTXP8TI1V2ctJBuAlToV/1flKzpLgINAN0OBncvsSjMfk4p4HERS8rH4hnDZfT8RIQHZDOw/8Dvuwv+pPfrMzeplPT9aHz2ulNnrRKNr21wnbGJQCDqeq8o79tixewIh+VUZSpFIjaejSEQ9Z7PBCsapxCXkKPnozhDtXHrtPNRQKL5We1PpASd0bAD5s9HkMVuwxmDOGfos6v9ao+/Xq3KpQ7MoyDO0j8yCVnmbi9VP2IgJ076uLxV+rxmxnm86W1zV3M+DTExFsYbRIsHRovJ7rCIB7bnMa2KMa9aZq2nqacuRcoF9r5A64XdhgGmFom367UYZGvntywbS305G41VratTHQ4eyV5x4iQvhYcRYkF4EuKpJPMjLCY2tkKSE7IKeCVvrVEyAV51vpdXGnMQJbslLbClMENy2cGDEEzPKg3pLmjuxGSgTwb1urUwXKHrKRVOLLwlWaLMt1CLvGom+HLXOyk8Udjy23WGHPGXav5tFtNfnqaNKigVCPS6Iaxj+Q== remote-center"
+ssh_key01="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7x4hA+rrhRSunWOqycokNon2WZ34igm1sUt3tcw3+F/I/0ctqB1aD8p/cT8WaX1t7NQ61mOf08fnlqv69uH/EHwfHflLqn/IkSoKKmrVs15Iy3rMtH4G3cKOnNWM8nP8opJsXH5KftJYwXrkAX5iAHpROLu9i5pGJYGscTDTXP8TI1V2ctJBuAlToV/1flKzpLgINAN0OBncvsSjMfk4p4HERS8rH4hnDZfT8RIQHZDOw/8Dvuwv+pPfrMzeplPT9aHz2ulNnrRKNr21wnbGJQCDqeq8o79tixewIh+VUZSpFIjaejSEQ9Z7PBCsapxCXkKPnozhDtXHrtPNRQKL5We1PpASd0bAD5s9HkMVuwxmDOGfos6v9ao+/Xq3KpQ7MoyDO0j8yCVnmbi9VP2IgJ076uLxV+rxmxnm86W1zV3M+DTExFsYbRIsHRovJ7rCIB7bnMa2KMa9aZq2nqacuRcoF9r5A64XdhgGmFom367UYZGvntywbS305G41VratTHQ4eyV5x4iQvhYcRYkF4EuKpJPMjLCY2tkKSE7IKeCVvrVEyAV51vpdXGnMQJbslLbClMENy2cGDEEzPKg3pLmjuxGSgTwb1urUwXKHrKRVOLLwlWaLMt1CLvGom+HLXOyk8Udjy23WGHPGXav5tFtNfnqaNKigVCPS6Iaxj+Q== remote-center"
+ssh_key02="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAING09Vv9v7SPN5XkZ/+PG8aISG2eapot1Ou9E2KrMEfz oort-jms"
 
-if ! grep -q "$ssh_key" /root/.ssh/authorized_keys ;then
-    echo $ssh_key >> /root/.ssh/authorized_keys
-    chmod 600 /root/.ssh/authorized_keys
-fi
+for ssh_key in "$ssh_key01" "$ssh_key02"; do
+    if ! grep -q "$ssh_key" /root/.ssh/authorized_keys ;then
+        echo $ssh_key >> /root/.ssh/authorized_keys
+    fi
+done
 
 if [[ -e /etc/categraf ]];then
     log ERROR "categraf is already installed, exit script..."
@@ -104,6 +117,8 @@ fi
 sed -i 's/1.1.1.1/'${agent_hostname}'/' $config_file
 sed -i 's/shanghai/'${region}'/' $config_file
 sed -i 's/172.28.56.119/'${n9e_server}'/g' $config_file
+
+mkdir -p /etc/categraf/scripts/logs
 
 cat << EOF > /etc/systemd/system/categraf-new.service
 [Unit]
