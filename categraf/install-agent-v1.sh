@@ -13,10 +13,20 @@ log() {
     echo "$timestamp $level - $message"
 }
 
-local_ip=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-4)}' | tr -d ':')
+interface=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-4)}')
+if [[ -z ${interface} ]];then
+    log ERROR "Unknown interface!"
+    exit 1
+fi
 
-if [[ -z ${local_ip} ]];then
-    log ERROR "Unknown IP!"
+mac_address=$(cat /sys/class/net/${interface}/address)
+if [[ -z ${mac_address} ]];then
+    log ERROR "Unknown MAC address!"
+    exit 1
+fi
+address=$(echo ${mac_address} | tr -d ':')
+if [[ -z ${address} ]];then
+    log ERROR "Unknown address!"
     exit 1
 fi
 
@@ -47,7 +57,7 @@ else
     exit 1
 fi
 
-agent_hostname="OORT_${region}_${local_ip}"
+agent_hostname="OORT_${region}_${address}"
 
 n9e_server="116.182.20.16"
 categraf_program="categraf-v0.4.3-0314.tar.gz"

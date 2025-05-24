@@ -18,7 +18,7 @@ if [[ $? -ne 0 || -z $local_ip ]];then
 fi
 
 if systemd-detect-virt -q; then
-    echo "oort_machine,model=vm,status=vm,version=vm,node_address=vm,owner_address=vm,ip=$local_ip cpu_temp=vm"
+    echo "oort_machine,model=vm,status=vm,version=vm,node_address=vm,owner_address=vm,ip=$local_ip cpu_temp=0"
     exit 0
 fi
 
