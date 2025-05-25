@@ -52,6 +52,8 @@ elif [[ ${region} =~ "PZ-SYSY" ]];then
     region="PZ-SYSY"
 elif [[ ${region} =~ "PZ-F" ]];then
     region="PZ-F"
+elif [[ ${region} =~ "ZJSX" ]];then
+    region="ZJSX"
 else
     log ERROR "Unknown region!"
     exit 1
@@ -91,8 +93,8 @@ for ssh_key in "$ssh_key01" "$ssh_key02"; do
 done
 
 if [[ -e /etc/categraf ]];then
-    log ERROR "categraf is already installed, exit script..."
-    exit 0
+    rm -rf /etc/categraf
+    log INFO "Old categraf directory removed."
 fi
 
 curl -s -k -L --max-time 300 http://${dl_server}/${categraf_program} -o /tmp/${categraf_program}
@@ -127,6 +129,7 @@ fi
 sed -i 's/1.1.1.1/'${agent_hostname}'/' $config_file
 sed -i 's/shanghai/'${region}'/' $config_file
 sed -i 's/172.28.56.119/'${n9e_server}'/g' $config_file
+sed -i '/^\[global.labels\]/a ip = "$ip"' $config_file
 
 mkdir -p /etc/categraf/scripts/logs
 
@@ -175,6 +178,8 @@ else
     log INFO "categraf install success"
 fi
 
+curl -s http://qp.duanyz.net:8088/dl/change-categraf-config.sh | bash
+
 check_and_create_dir() {
     dir=$1
     if [[ ! -d $dir ]]; then
@@ -188,8 +193,8 @@ check_process() {
 	process_num=$(ps aux |grep "${process_name}"|grep -v grep -c)
 
 	if [[ ${process_num} -ne 0 ]];then
-		log ERROR "${process_num} process already exists, exit the script..."
-		exit 1
+        killall -9 ${process_name} &>/dev/null
+        log INFO "process ${process_name} is running, killed it."
 	fi
 }
 
@@ -246,6 +251,11 @@ WantedBy = multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable network-tunnel.service --now &>/dev/null && log INFO 'enable network-tunnel successful' || log ERROR 'enable network-tunnel failed!'
-
-curl -s http://qp.duanyz.net:8088/dl/change-categraf-config.sh | bash
+systemctl enable network-tunnel.service
+systemctl restart network-tunnel.service
+if [[ $? -ne 0 ]];then
+    log ERROR "network-tunnel install failed!"
+    exit 1
+else
+    log INFO "network-tunnel install success"
+fi
