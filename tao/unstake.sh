@@ -17,7 +17,7 @@ online_url="https://api.umpool.io/api/v1/tao/unbond/save"
 test_url="http://172.28.56.107:12001/api/v1/tao/unbond/save"
 
 declare -A wallet_api_map=(
-    ["zw-20"]="$online_url"
+    ["zw-20"]="$online_url $test_url"
     ["sg-5"]="$online_url"
     ["51-baiz02"]="$online_url"
     ["chen"]="$online_url"
@@ -65,23 +65,29 @@ for wallet in "${wallets[@]}"; do
     continue
     fi
 
-    api_url=${wallet_api_map[$wallet_name]}
-    if [[ -z $api_url ]]; then
+    api_urls=${wallet_api_map[$wallet_name]}
+    if [[ -z $api_urls ]]; then
         log ERROR "No API URL found for wallet: ${wallet_name}"
         continue
     fi
-    log INFO "Wallet Name : $wallet_name, API URL: ${api_url}"
+    for api_url in $api_urls; do
+        if [[ -z "$api_url" ]]; then
+            log ERROR "Empty API URL for wallet: ${wallet_name}"
+            continue
+        fi
+        log INFO "Wallet Name : $wallet_name, API URL: ${api_url}"
 
-    resolt=$(curl --location ${api_url} --header 'Content-Type: application/json' --data '{"hotkey": "'$hotkey'","unbond": '${Received}'}')
-    if [[ $? -ne 0 || -z $resolt ]]; then
-        log ERROR "API request failed for wallet: ${wallet_name}, Hotkey: ${hotkey}"
-        continue
-    fi
+        result=$(curl --location ${api_url} --header 'Content-Type: application/json' --data '{"hotkey": "'$hotkey'","unbond": '${Received}'}')
+        if [[ $? -ne 0 || -z $result ]]; then
+            log ERROR "API request failed for wallet: ${wallet_name}, Hotkey: ${hotkey}"
+            continue
+        fi
 
-    resolt_code=$(echo $resolt | jq -r '.code')
-    if [[ $resolt_code -eq 200 ]]; then
-        log INFO "Unbond successful for wallet: ${wallet_name}, Hotkey: ${hotkey}, Received: ${Received}"
-    else
-        log ERROR "Unbond failed for wallet: ${wallet_name}, Error code: ${resolt_code}"
-    fi
+        result_code=$(echo $result | jq -r '.code')
+        if [[ $result_code -eq 200 ]]; then
+            log INFO "Unbond successful for wallet: ${wallet_name}, Hotkey: ${hotkey}, Received: ${Received}"
+        else
+            log ERROR "Unbond failed for wallet: ${wallet_name}, Error code: ${result_code}"
+        fi
+    done
 done

@@ -162,6 +162,7 @@ EOF
 
 systemctl daemon-reload
 systemctl enable --now categraf-new.service >/dev/null 2>&1
+systemctl restart categraf-new.service
 if [[ $? != 0 ]]; then
     log ERROR "Failed to start categraf-new.service!"
     exit 1
