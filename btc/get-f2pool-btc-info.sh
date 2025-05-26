@@ -1,9 +1,12 @@
 #!/bin/bash
 
-ELECTRICITY_COST="0.4"
-MINER_PRICE="19000"
+ELECTRICITY_COST="0"
+MINER_PRICE="1700"
 POOL_FEE="0.04"
 SERVICE_FEE="0"
+
+hashrate=95
+power=3800
 
 CNY_USD_response=$(curl -s --compressed --max-time 10 --retry 3 'https://www.binance.com/bapi/asset/v1/public/asset-service/product/currency')
 if [[ $? != 0 || -z "${CNY_USD_response}" ]]; then
@@ -38,9 +41,9 @@ network_hashrate_EH=$(echo "${network_hashrate}" | awk '{printf "%.2f\n", $1 / 1
 estimated_profit_usd_fee=$(echo "${estimated_profit_usd} ${CNY_USD} ${POOL_FEE}" | awk '{printf "%.4f\n", $1 * $2 * (1 - $3)}')
 
 # 按照单T收益计算矿机单日收益
-day_income=$(echo "257 ${estimated_profit_usd_fee}" | awk '{printf "%.2f\n", $1 * $2}')
+day_income=$(echo "$hashrate ${estimated_profit_usd_fee}" | awk '{printf "%.2f\n", $1 * $2}')
 # 按照矿机功耗计算矿机单日电费
-day_df=$(echo "5345 ${ELECTRICITY_COST}" | awk '{printf "%.2f\n", $1 / 1000 * 24 * $2}')
+day_df=$(echo "$power ${ELECTRICITY_COST}" | awk '{printf "%.2f\n", $1 / 1000 * 24 * $2}')
 # 日利润扣除服务费抽成
 day_profit=$(echo "${day_income} ${day_df} ${SERVICE_FEE}" | awk '{printf "%.2f\n", ($1 - $2) * (1 - $3)}')
 # 计算回本周期
@@ -48,9 +51,9 @@ payback_period=$(echo "${day_profit} ${MINER_PRICE}" | awk '{printf "%.0f\n", $2
 
 
 push_txt="$(date '+%F %T')\n
-品牌型号:  蚂蚁S19 XP Hyd
-算力:  257T
-功耗:  5345w
+品牌型号:  蚂蚁S19
+算力:  ${hashrate} TH/s
+功耗:  ${power} W
 价格:  ${MINER_PRICE}元
 电价:  ${ELECTRICITY_COST}元
 币价:  ${btc_price}元
