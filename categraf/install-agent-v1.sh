@@ -56,6 +56,8 @@ elif [[ ${region} =~ "PZ-F" ]];then
     region="PZ-F"
 elif [[ ${region} =~ "ZJSX" ]];then
     region="ZJSX"
+elif [[ ${region} =~ "DX-105" ]];then
+    region="DX-105"
 else
     log ERROR "Unknown region!"
     exit 1
