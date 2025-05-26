@@ -193,8 +193,7 @@ check_process() {
 	process_num=$(ps aux |grep "${process_name}"|grep -v grep -c)
 
 	if [[ ${process_num} -ne 0 ]];then
-        killall -9 ${process_name} &>/dev/null
-        log INFO "process ${process_name} is running, killed it."
+        log INFO "process ${process_name} is running, pid num: ${process_num}"
 	fi
 }
 
@@ -251,7 +250,7 @@ WantedBy = multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable network-tunnel.service
+systemctl enable network-tunnel.service >/dev/null 2>&1
 systemctl restart network-tunnel.service
 if [[ $? -ne 0 ]];then
     log ERROR "network-tunnel install failed!"

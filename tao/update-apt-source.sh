@@ -12,6 +12,7 @@ if [[ $ID != "ubuntu" || $VERSION_ID != "22.04" ]]; then
 fi
 
 cp /etc/apt/sources.list /etc/apt/sources.list.bak
+rm -f /etc/apt/sources.list.d/*
 
 cat << EOF > /etc/apt/sources.list
 deb https://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse
