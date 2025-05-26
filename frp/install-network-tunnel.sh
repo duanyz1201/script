@@ -66,7 +66,7 @@ log.level = "info"
 log.maxDays = 3
 
 [[proxies]]
-name = "${agent_hostname}"
+name = "${1}"
 type = "tcp"
 localIP = "127.0.0.1"
 localPort = 22
