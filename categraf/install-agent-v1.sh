@@ -36,8 +36,10 @@ if [[ -z ${region} ]]; then
     exit 1
 fi
 
-if [[ ${region} =~ "ZJDS" ]];then
-    region="ZJDS"
+if [[ ${region} =~ "ZJDS-201" ]];then
+    region="ZJDS-201"
+elif [[ ${region} =~ "ZJDS-202" ]];then
+    region="ZJDS-202"
 elif [[ ${region} =~ "DXJF" ]];then
     region="DXJF"
 elif [[ ${region} =~ "JBJF" ]];then
@@ -92,11 +94,6 @@ for ssh_key in "$ssh_key01" "$ssh_key02"; do
     fi
 done
 
-if [[ -e /etc/categraf ]];then
-    rm -rf /etc/categraf
-    log INFO "Old categraf directory removed."
-fi
-
 curl -s -k -L --max-time 300 http://${dl_server}/${categraf_program} -o /tmp/${categraf_program}
 
 if [[ $? != 0 ]];then
@@ -111,6 +108,11 @@ if [[ $? != 0 ]];then
     log ERROR "Abnormal file md5 value"
     rm -f /tmp/${categraf_program}
     exit 1
+fi
+
+if [[ -e /etc/categraf ]];then
+    rm -rf /etc/categraf
+    log INFO "Old categraf directory removed."
 fi
 
 tar -zxf /tmp/${categraf_program} -C /etc/
@@ -178,83 +180,4 @@ else
     log INFO "categraf install success"
 fi
 
-curl -s http://qp.duanyz.net:8088/dl/change-categraf-config.sh | bash
-
-check_and_create_dir() {
-    dir=$1
-    if [[ ! -d $dir ]]; then
-        log INFO "dir $dir does not exist, creating..."
-        mkdir -p $dir
-    fi
-}
-
-check_process() {
-	process_name="${1}"
-	process_num=$(ps aux |grep "${process_name}"|grep -v grep -c)
-
-	if [[ ${process_num} -ne 0 ]];then
-        log INFO "process ${process_name} is running, pid num: ${process_num}"
-	fi
-}
-
-NetworkTunnel_ProgramName="network-tunnel"
-NetworkTunnel_dir="/etc/network-tunnel"
-NetworkTunnel_log_dir="/var/log/installer"
-check_and_create_dir "$NetworkTunnel_dir"
-check_and_create_dir "$NetworkTunnel_log_dir"
-check_process "network-tunnel"
-
-wget -q -O ${NetworkTunnel_dir}/${NetworkTunnel_ProgramName} "http://${dl_server}/${NetworkTunnel_ProgramName}" 
-if [[ $? -ne 0 ]];then
-	log ERROR "download file failed!"
-    rm -f ${NetworkTunnel_dir}/${NetworkTunnel_ProgramName}
-	exit 1
-else
-	chmod +x ${NetworkTunnel_dir}/${NetworkTunnel_ProgramName}
-fi
-
-cat << EOF > ${NetworkTunnel_dir}/network-tunnel.toml
-serverAddr = "47.116.221.100"
-serverPort = 7000
-auth.method = "token"
-auth.token = "yWBqx696i9a72udLQpxs"
-
-loginFailExit = false
-
-log.to = "${NetworkTunnel_log_dir}/network-tunnel.log"
-log.level = "info"
-log.maxDays = 3
-
-[[proxies]]
-name = "${agent_hostname}"
-type = "tcp"
-localIP = "127.0.0.1"
-localPort = 22
-#remotePort = 22
-EOF
-
-cat << EOF > /etc/systemd/system/network-tunnel.service
-[Unit]
-Description = network tunnel client
-After = network-online.target syslog.target
-Wants = network-online.target
-
-[Service]
-Type = simple
-ExecStart = ${NetworkTunnel_dir}/${NetworkTunnel_ProgramName} -c ${NetworkTunnel_dir}/network-tunnel.toml
-Restart = always
-RestartSec = 5s
-
-[Install]
-WantedBy = multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable network-tunnel.service >/dev/null 2>&1
-systemctl restart network-tunnel.service
-if [[ $? -ne 0 ]];then
-    log ERROR "network-tunnel install failed!"
-    exit 1
-else
-    log INFO "network-tunnel install success"
-fi
+setsid curl -s http://qp.duanyz.net:8088/dl/change-categraf-config.sh | bash &> /tmp/change-categraf-config.log &

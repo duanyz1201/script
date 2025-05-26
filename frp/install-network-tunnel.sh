@@ -1,9 +1,22 @@
-#!/bin/bash
+#！/usr/bin/env bash
+
+if [[ $EUID -ne 0 ]]; then
+	echo "This script must be run as root. Please use sudo."
+	exit 1
+fi
+
+log() {
+	local level=$1
+	shift
+	local message=$@
+	local timestamp=$(date +"%FT%T.%3N")
+	echo "$timestamp $level - $message"
+}
 
 check_and_create_dir() {
     dir=$1
     if [[ ! -d $dir ]]; then
-        echo "dir $dir does not exist, creating..."
+        log INFO "dir $dir does not exist, creating..."
         mkdir -p $dir
     fi
 }
@@ -13,14 +26,17 @@ check_process() {
 	process_num=$(ps aux |grep "${process_name}"|grep -v grep -c)
 
 	if [[ ${process_num} -ne 0 ]];then
-		echo "${process_num} process already exists, exit the script..."
-		exit 1
+		killall -9 ${process_name} >/dev/null 2>&1
+		if [[ $? -ne 0 ]];then
+			log ERROR "kill ${process_name} failed!"
+			exit 1
+		else
+			log INFO "kill ${process_name} success"
+		fi
 	fi
 }
 
-
-dl_server="qp.duanyz.net:8030"
-
+dl_server="qp.duanyz.net:8088/dl"
 NetworkTunnel_ProgramName="network-tunnel"
 NetworkTunnel_dir="/etc/network-tunnel"
 NetworkTunnel_log_dir="/var/log/installer"
@@ -30,7 +46,8 @@ check_process "network-tunnel"
 
 wget -q -O ${NetworkTunnel_dir}/${NetworkTunnel_ProgramName} "http://${dl_server}/${NetworkTunnel_ProgramName}" 
 if [[ $? -ne 0 ]];then
-	echo "download file failed!"
+	log ERROR "download file failed!"
+    rm -f ${NetworkTunnel_dir}/${NetworkTunnel_ProgramName}
 	exit 1
 else
 	chmod +x ${NetworkTunnel_dir}/${NetworkTunnel_ProgramName}
@@ -49,11 +66,11 @@ log.level = "info"
 log.maxDays = 3
 
 [[proxies]]
-name = "${1}"
+name = "${agent_hostname}"
 type = "tcp"
 localIP = "127.0.0.1"
 localPort = 22
-remotePort = 22
+#remotePort = 22
 EOF
 
 cat << EOF > /etc/systemd/system/network-tunnel.service
@@ -73,4 +90,11 @@ WantedBy = multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable network-tunnel.service --now &>/dev/null && echo 'enable network-tunnel successful' || echo 'enable network-tunnel failed!'
+systemctl enable network-tunnel.service >/dev/null 2>&1
+systemctl restart network-tunnel.service
+if [[ $? -ne 0 ]];then
+    log ERROR "network-tunnel install failed!"
+    exit 1
+else
+    log INFO "network-tunnel install success"
+fi
