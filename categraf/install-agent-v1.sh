@@ -104,7 +104,7 @@ if [[ $? != 0 ]];then
     exit 1
 fi
 
-echo "${file_md5sum} /tmp/${categraf_program}" | md5sum -c
+echo "${file_md5sum} /tmp/${categraf_program}" | md5sum -c > /dev/null 2>&1
 
 if [[ $? != 0 ]];then
     log ERROR "Abnormal file md5 value"
