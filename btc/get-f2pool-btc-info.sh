@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ELECTRICITY_COST="0"
-MINER_PRICE="1700"
+MINER_PRICE="6600"
 POOL_FEE="0.04"
 SERVICE_FEE="0"
 
-hashrate=95
-power=3800
+hashrate=120
+power=2760
 
 CNY_USD_response=$(curl -s --compressed --max-time 10 --retry 3 'https://www.binance.com/bapi/asset/v1/public/asset-service/product/currency')
 if [[ $? != 0 || -z "${CNY_USD_response}" ]]; then
@@ -51,7 +51,7 @@ payback_period=$(echo "${day_profit} ${MINER_PRICE}" | awk '{printf "%.0f\n", $2
 
 
 push_txt="$(date '+%F %T')\n
-品牌型号:  蚂蚁S19
+品牌型号:   S19 Pro
 算力:  ${hashrate} TH/s
 功耗:  ${power} W
 价格:  ${MINER_PRICE}元

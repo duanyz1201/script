@@ -1,4 +1,4 @@
-#/bin/bash
+#/usr/bin/env bash
 
 log_file="del-expired-sectors.log"
 
