@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ -z ${1} ]];then
     ip=$(ip addr|awk -F '[ /]+' '/inet/{print $3}'|grep -oP '^172.(20|28|29)\S+|^10.(17)\S+|^172.16\S+|^192.168.(30)\S+'|head -1)
