@@ -67,7 +67,7 @@ agent_hostname="OORT_${region}_${address}"
 
 n9e_server="116.182.20.16"
 categraf_program="categraf-v0.4.3-0314.tar.gz"
-file_md5sum="5d1b7c0cf41bb578cd0bb2fb0657dba2"
+file_md5sum="007def8211e4aa347b9df54d81e70fa9"
 dl_server="qp.duanyz.net:8088/dl"
 
 if [[ ! -d /root/.ssh ]]; then
