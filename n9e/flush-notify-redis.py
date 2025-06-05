@@ -3,6 +3,7 @@
 import redis
 import os
 import json
+import time
 import requests
 import subprocess
 import datetime
@@ -179,4 +180,6 @@ def main():
     log("INFO", "")
 
 if __name__ == "__main__":
-    main()
+    while True:
+        main()
+        time.sleep(20)
