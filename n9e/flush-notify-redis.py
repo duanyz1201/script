@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 
 import redis
+import os
 import json
 import requests
 import subprocess
+import datetime
 from collections import defaultdict
-from datetime import datetime
+
+LOG_FILE = "/root/logs/flush-notify-redis.log"
+
+def log(level, message):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
+    with open(LOG_FILE, "a") as f:
+        f.write(f"{timestamp} {level} - {message}\n")
 
 REDIS_HOST = '127.0.0.1'
 REDIS_DB = 0
@@ -32,7 +40,7 @@ def fetch_alerts(r, key):
 
 def unix_to_str(ts):
     try:
-        return datetime.fromtimestamp(int(ts)).strftime('%Y-%m-%d %H:%M:%S')
+        return datetime.datetime.fromtimestamp(int(ts)).strftime('%Y-%m-%d %H:%M:%S')
     except:
         return "-"
 
@@ -41,7 +49,6 @@ def handle_voice(alerts):
     按 rule_name 和 notify_groups_obj.name 聚合电话告警
     单条告警传主机名，聚合多条传主机数量
     """
-
     # 按 (rule_name, group_name) 聚合
     grouped = defaultdict(list)
     for alert in alerts:
@@ -71,7 +78,11 @@ def handle_voice(alerts):
             host = f"检测到{len(items)}台设备"
         # 依次拨打
         for phone in phones:
-            subprocess.call([VOICE_SCRIPT, phone, host, rule])
+            subprocess.call(
+                [VOICE_SCRIPT, phone, host, rule],
+                stdout=open(os.devnull, 'w'),
+                stderr=open(os.devnull, 'w')
+            )
 
 def group_by_token_rule_region_recover(alerts):
     grouped = defaultdict(list)
@@ -128,35 +139,44 @@ def send_wecom(token, content):
     }
     try:
         r = requests.post(url, json=payload, timeout=5)
-        if r.status_code != 200:
-            print(f"[ERROR] Failed to send to {token}: {r.text}")
+        resp = r.json()
+        if resp.get("errcode", -1) != 0:
+            print(f"[ERROR] Failed to send to {token}: {resp.get('errmsg')}")
+            log("ERROR", f"Failed to send to {token}: {resp.get('errmsg')}")
     except Exception as e:
         print(f"[ERROR] Exception during sending to {token}: {e}")
+        log("ERROR", f"Exception during sending to {token}: {e}")
 
 def main():
+    log("INFO", "########## Starting flush-notify-redis script ##########")
     r = redis.Redis(host=REDIS_HOST, port=6379, db=REDIS_DB, decode_responses=True)
 
     for redis_key, notify_type in REDIS_KEYS.items():
+        log("INFO", f"开始处理队列: {redis_key} 类型: {notify_type}")
         alerts = fetch_alerts(r, redis_key)
         if not alerts:
+            log("INFO", f"队列: {redis_key} 无告警, 跳过")
             continue
 
         # s1级别既打电话又发微信
         if notify_type == 'voice_wecom':
             handle_voice(alerts)
+            log("INFO", f"{redis_key} {len(alerts)} 条告警已完成电话通知")
             grouped = group_by_token_rule_region_recover(alerts)
             for group_key, items in grouped.items():
                 token, _, _, _ = group_key.split("::", 3)
                 content = build_markdown(items)
                 send_wecom(token, content)
-        elif notify_type == 'voice':
-            handle_voice(alerts)
+                log("INFO", f"{redis_key} 已发送微信通知到token: {token}, 共{len(alerts)}条")
         elif notify_type == 'wecom':
             grouped = group_by_token_rule_region_recover(alerts)
             for group_key, items in grouped.items():
                 token, _, _, _ = group_key.split("::", 3)
                 content = build_markdown(items)
                 send_wecom(token, content)
+                log("INFO", f"{redis_key} 已发送微信通知到token: {token}, 共{len(alerts)}条")
+    log("INFO", "Finished processing all alerts")
+    log("INFO", "")
 
 if __name__ == "__main__":
     main()
