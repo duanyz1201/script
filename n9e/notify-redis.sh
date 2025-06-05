@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-log_file="/var/log/notify_redis.log"
+log_file="/root/logs/notify_redis.log"
 
 log() {
     local level=$1
@@ -38,4 +38,6 @@ echo "$alert" | $REDIS_CLI -x RPUSH "$REDIS_KEY"
 if [[ $? -ne 0 ]]; then
     log ERROR "Failed to write alert to Redis key: $REDIS_KEY"
     exit 1
+else
+    log INFO "Alert written to Redis key: $REDIS_KEY"
 fi
