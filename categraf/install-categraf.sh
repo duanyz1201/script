@@ -5,7 +5,7 @@ if [[ -z ${1} ]];then
 elif [[ ${1} = "ecs" ]];then
     ip=$(curl -s ipinfo.io | jq -r '.ip')
 elif [[ ${1} = "custom" ]];then
-    ip=$(hostname)
+    ip=$(ip route get 223.6.6.6 | head -n 1 | awk '{print $(NF-2)}'|tr '.' '-')
     if [[ -z ${ip} ]];then
         echo "Unknown IP!"
         exit 1
@@ -45,6 +45,7 @@ elif [[ ${1} = "ecs" || ${1} = "custom" ]];then
         exit 1
     fi
     region="${2}"
+    ip=$(echo ${region} ${ip} | awk '{print $1"-"$2}')
     n9e_server="116.182.20.16"
     dl_server="qp.duanyz.net:8088/dl"
 fi
