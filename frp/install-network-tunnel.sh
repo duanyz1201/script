@@ -23,7 +23,7 @@ check_and_create_dir() {
 
 check_process() {
 	process_name="${1}"
-	process_num=$(ps aux |grep "${process_name}"|grep -v grep -c)
+	process_num=$(ps aux |grep "${process_name}"|grep -Ev 'install|grep' -c)
 
 	if [[ ${process_num} -ne 0 ]];then
 		killall -9 ${process_name} >/dev/null 2>&1
