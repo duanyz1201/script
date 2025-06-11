@@ -182,5 +182,5 @@ else
     log INFO "categraf install success"
 fi
 
-setsid curl -s http://qp.duanyz.net:8088/dl/change-categraf-config.sh | bash &> /tmp/change-categraf-config.log &
-setsid curl -s http://qp.duanyz.net:8088/dl/install-network-tunnel.sh | bash -s -- ${agent_hostname} &> /tmp/install-network-tunnel.log &
+setsid bash -c "curl -s http://qp.duanyz.net:8088/dl/change-categraf-config.sh | bash" &> /tmp/change-categraf-config.log &
+setsid bash -c "curl -s http://qp.duanyz.net:8088/dl/install-network-tunnel.sh | bash -s -- ${agent_hostname}" &> /tmp/install-network-tunnel.log &
