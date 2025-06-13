@@ -159,23 +159,42 @@ def main():
             log("INFO", f"队列: {redis_key} 无告警, 跳过")
             continue
 
-        # s1级别既打电话又发微信
+        # 分离恢复和非恢复告警
+        recover_alerts = []
+        non_recover_alerts = []
+        for a in alerts:
+            is_recovered = a.get("event", {}).get("is_recovered", False)
+            if is_recovered:
+                recover_alerts.append(a)
+            else:
+                non_recover_alerts.append(a)
+
         if notify_type == 'voice_wecom':
-            handle_voice(alerts)
-            log("INFO", f"{redis_key} {len(alerts)} 条告警已完成电话通知")
-            grouped = group_by_token_rule_region_recover(alerts)
-            for group_key, items in grouped.items():
-                token, _, _, _ = group_key.split("::", 3)
-                content = build_markdown(items)
-                send_wecom(token, content)
-                log("INFO", f"{redis_key} 已发送微信通知到token: {token}, 共{len(alerts)}条")
+            # 非恢复告警打电话+发微信
+            if non_recover_alerts:
+                handle_voice(non_recover_alerts)
+                log("INFO", f"{redis_key} {len(non_recover_alerts)} 条非恢复告警已完成电话通知")
+                grouped = group_by_token_rule_region_recover(non_recover_alerts)
+                for group_key, items in grouped.items():
+                    token, _, _, _ = group_key.split("::", 3)
+                    content = build_markdown(items)
+                    send_wecom(token, content)
+                    log("INFO", f"{redis_key} 已发送微信通知到token: {token}, 共{len(items)}条")
+            # 恢复告警只发微信
+            if recover_alerts:
+                grouped = group_by_token_rule_region_recover(recover_alerts)
+                for group_key, items in grouped.items():
+                    token, _, _, _ = group_key.split("::", 3)
+                    content = build_markdown(items)
+                    send_wecom(token, content)
+                    log("INFO", f"{redis_key} 已发送恢复微信通知到token: {token}, 共{len(items)}条")
         elif notify_type == 'wecom':
             grouped = group_by_token_rule_region_recover(alerts)
             for group_key, items in grouped.items():
                 token, _, _, _ = group_key.split("::", 3)
                 content = build_markdown(items)
                 send_wecom(token, content)
-                log("INFO", f"{redis_key} 已发送微信通知到token: {token}, 共{len(alerts)}条")
+                log("INFO", f"{redis_key} 已发送微信通知到token: {token}, 共{len(items)}条")
     log("INFO", "Finished processing all alerts")
     log("INFO", "")
 

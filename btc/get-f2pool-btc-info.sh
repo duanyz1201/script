@@ -1,12 +1,13 @@
 #!/bin/bash
 
-ELECTRICITY_COST="0.4"
-MINER_PRICE="6600"
+MODEL="S21"
+ELECTRICITY_COST="0.41"
+MINER_PRICE="17232"
 POOL_FEE="0.04"
 SERVICE_FEE="0"
 
-hashrate=120
-power=2760
+hashrate=200
+power=3500
 
 CNY_USD_response=$(curl -s --compressed --max-time 10 --retry 3 'https://www.binance.com/bapi/asset/v1/public/asset-service/product/currency')
 if [[ $? != 0 || -z "${CNY_USD_response}" ]]; then
@@ -50,8 +51,8 @@ day_profit=$(echo "${day_income} ${day_df} ${SERVICE_FEE}" | awk '{printf "%.2f\
 payback_period=$(echo "${day_profit} ${MINER_PRICE}" | awk '{printf "%.0f\n", $2 / $1}')
 
 
-push_txt="$(date '+%F %T')\n
-品牌型号:   S19 Pro
+push_txt="$(date '+%F %T')
+品牌型号:   ${MODEL}
 算力:  ${hashrate} TH/s
 功耗:  ${power} W
 价格:  ${MINER_PRICE}元
