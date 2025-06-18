@@ -21,7 +21,7 @@ if [[ $? != 0 || -z $oort_alert ]];then
     log ERROR "get oort alert failed!"
     exit 1
 else
-    echo $oort_alert | jq -r '.dat.list[]|{rule_name, target_ident, first_trigger_time, region: ( .tags[] | select(startswith("region=")) | split("=")[1] ), ip: ( .tags[] | select(startswith("ip=")) | split("=")[1] )}' > /usr/share/nginx/html/oort-alert-offline.log
+    echo $oort_alert | jq -r '[.dat.list[]|{rule_name, target_ident, first_trigger_time, region: ( .tags[] | select(startswith("region=")) | split("=")[1] ), ip: ( .tags[] | select(startswith("ip=")) | split("=")[1] )}]' > /usr/share/nginx/html/oort-alert-offline.log
 fi
 
 result=$(curl -s -H "Authorization: Bearer ${Token}" 'http://172.28.56.119:16000/api/n9e/targets?query=&gids=16&limit=10000&p=1')
