@@ -1,13 +1,13 @@
 #!/bin/bash
 
 MODEL="S21"
-ELECTRICITY_COST="0.41"
-MINER_PRICE="17232"
+ELECTRICITY_COST="0.35"
+MINER_PRICE="66040"
 POOL_FEE="0.04"
 SERVICE_FEE="0"
 
-hashrate=200
-power=3500
+hashrate=473
+power=5676
 
 CNY_USD_response=$(curl -s --compressed --max-time 10 --retry 3 'https://www.binance.com/bapi/asset/v1/public/asset-service/product/currency')
 if [[ $? != 0 || -z "${CNY_USD_response}" ]]; then
