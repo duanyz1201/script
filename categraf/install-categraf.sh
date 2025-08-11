@@ -30,15 +30,15 @@ if [[ ${pre_ip} =~ "172.28" ]];then
 elif [[ ${pre_ip} =~ "192.168.30" ]];then
     region="QP-158"
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8088/dl"
+    dl_server="ct2.duanyz.net:8088/dl"
 elif [[ ${pre_ip} =~ "172.20" ]];then
     region="HA"
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8088/dl"
+    dl_server="ct2.duanyz.net:8088/dl"
 elif [[ ${pre_ip} =~ "172.16" || ${pre_ip} =~ "10.17" ]];then
     region="LZ-GZ"
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8088/dl"
+    dl_server="ct2.duanyz.net:8088/dl"
 elif [[ ${1} = "ecs" || ${1} = "custom" ]];then
     if [[ -z ${2} ]];then
         echo "Usage: $0 <region>"
@@ -47,7 +47,7 @@ elif [[ ${1} = "ecs" || ${1} = "custom" ]];then
     region="${2}"
     ip=$(echo ${region} ${ip} | awk '{print $1"-"$2}')
     n9e_server="116.182.20.16"
-    dl_server="qp.duanyz.net:8088/dl"
+    dl_server="ct2.duanyz.net:8088/dl"
 fi
 
 if [[ -e /etc/categraf ]];then

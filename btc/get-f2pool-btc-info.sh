@@ -1,13 +1,13 @@
 #!/bin/bash
 
-MODEL="S21"
-ELECTRICITY_COST="0.35"
-MINER_PRICE="66040"
+MODEL="阿瓦隆 A1566HA"
+ELECTRICITY_COST="0.4"
+MINER_PRICE="44000"
 POOL_FEE="0.04"
 SERVICE_FEE="0"
 
-hashrate=473
-power=5676
+hashrate=480
+power=8064
 
 CNY_USD_response=$(curl -s --compressed --max-time 10 --retry 3 'https://www.binance.com/bapi/asset/v1/public/asset-service/product/currency')
 if [[ $? != 0 || -z "${CNY_USD_response}" ]]; then
@@ -33,6 +33,7 @@ estimated_profit_usd=$(echo "${f2pool_btc_info}" | jq -r '.data.estimated_profit
 btc_price_response=$(echo "${f2pool_btc_info}" | jq -r '.data.price')
 # BTC美元价格转换人民币
 btc_price=$(echo "${btc_price_response} ${CNY_USD}" | awk '{printf "%.0f\n", $1 * $2}')
+#btc_price=500000
 
 # 全网算力单位转换
 # 1 EH/s = 1e18 H/s
